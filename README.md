@@ -56,6 +56,14 @@ python pikpakTgBot.py
 
 这样你的机器人就上线工作啦！当然最好还是使用如`pm2`等进程守护工具在后台守护运行。
 
+### docker部署
+下载源码到服务器，并cd到源码根目录，执行以下命令：
+```
+vi config.py #修改配置文件
+docker build . --tag pikpakbot
+docker run --name=pikpakbot --restart=always -d -v "$PWD":/code pikpakbot
+```
+
 # 使用
 
 机器人监听的命令如下：
@@ -97,7 +105,6 @@ python pikpakTgBot.py
 # Todo
 
 - 多线程下载：多账号多线程下载、vip账号多线程下载
-- docker部署
 
 # 注意事项
 
