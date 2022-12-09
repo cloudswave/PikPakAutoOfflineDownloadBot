@@ -13,3 +13,6 @@ ARIA2_SECRET = "secret"
 ARIA2_DOWNLOAD_PATH = "/mnt/sda1/aria2/pikpak"
 # 可以自定义TG API，也可以保持默认
 TG_API_URL = 'https://api.telegram.org'
+
+#you-get下载目录
+YOUGET_DOWNLOAD_PATH = "/download"

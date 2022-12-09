@@ -35,7 +35,7 @@ dispatcher = updater.dispatcher
 
 def start(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=update.effective_chat.id,
-                             text="【命令简介】\n/pikpak\t自动离线+aria2下载+释放网盘空间\n/account\t管理账号（发送/account查看使用帮助）"
+                             text="【命令简介】\n/pikpak\t自动离线+aria2下载+释放网盘空间\n/youget\t自动爬取网页视频\n/account\t管理账号（发送/account查看使用帮助）"
                                   "\n/clean\t清空账号网盘空间（请慎用！清空文件无法找回！！！）")
 
 
@@ -919,13 +919,47 @@ def download(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=update.effective_chat.id, text='有命令正在运行，为避免冲突请稍后再试~')
 '''
 
+# 使用you-get工具下载网页视频
+def youget_main(update: Update, context: CallbackContext, url):
+    try:
+        context.bot.send_message(chat_id=update.effective_chat.id, text=f'you-get -o {YOUGET_DOWNLOAD_PATH} {url}')
+        os.chdir(os.path.abspath(YOUGET_DOWNLOAD_PATH)) # 切换到下载目录，-m m3u8下载时候需要
+        result = os.popen(f'you-get -o {YOUGET_DOWNLOAD_PATH} {url}').read()
+        context.bot.send_message(chat_id=update.effective_chat.id, text='you-get命令执行结束')
+    except Exception as e:
+        context.bot.send_message(chat_id=update.effective_chat.id, text='you-get下载异常')
+            
+
+def youget(update: Update, context: CallbackContext):
+    argv = context.args  # 获取命令参数
+
+    if len(argv) == 0:  # 如果仅为/youget命令，没有附带参数则返回帮助信息
+        context.bot.send_message(chat_id=update.effective_chat.id, text='【用法】\n/youget [-m/...] url [url2] [...]\n-m:下载m3u8视频\n')
+        # result = os.popen(f'you-get -h').read()
+        # context.bot.send_message(chat_id=update.effective_chat.id, text=f'可选的参数:{result}')
+    else:
+        print_info = '下载队列添加离线网页视频任务：\n'  # 将要输出的信息
+        you_get_arg = ''
+        for url in argv:  # 逐个判断每个参数是否为链接，并提取出
+            if url.startswith('http:') or url.startswith('https:'): 
+                print_info += f'{url}\n'
+                thread_list.append(threading.Thread(target=youget_main, args=[update, context, you_get_arg + ' ' + url]))
+                thread_list[-1].start()
+            else:
+                you_get_arg += f' {url}'
+
+        context.bot.send_message(chat_id=update.effective_chat.id, text=print_info.rstrip())
+        logging.info(print_info.rstrip())
+
 start_handler = CommandHandler(['start', 'help'], start)
 pikpak_handler = CommandHandler('pikpak', pikpak)
 clean_handler = CommandHandler(['clean', 'clear'], clean)
 account_handler = CommandHandler('account', account_manage)
+youget_handler = CommandHandler('youget', youget)
 # download_handler = CommandHandler('download', download)  # download命令在pikpak命令健壮后将弃用
 
-# dispatcher.add_handler(download_handler)
+
+dispatcher.add_handler(youget_handler)
 dispatcher.add_handler(account_handler)
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(pikpak_handler)

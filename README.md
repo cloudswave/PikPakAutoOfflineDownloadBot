@@ -25,7 +25,7 @@
 安装依赖：
 
 ```shell
-pip install -r requirements.txt
+pip install -r requirements.txt #如果要使用you-get工具下载m3u8另外需要安装ffmpeg
 ```
 
 配置`config.py`文件信息：
@@ -46,6 +46,9 @@ ARIA2_SECRET = "secret"
 ARIA2_DOWNLOAD_PATH = "/mnt/sda1/aria2/pikpak"
 # 可以自定义TG API，也可以保持默认
 TG_API_URL = 'https://api.telegram.org/'
+
+#you-get下载目录
+YOUGET_DOWNLOAD_PATH = "/root/download"
 ```
 
 最后：
@@ -61,7 +64,7 @@ python pikpakTgBot.py
 ```
 vi config.py #修改配置文件
 docker build . --tag pikpakbot
-docker run --name=pikpakbot --restart=always -d -v "$PWD":/code pikpakbot
+docker run --name=pikpakbot --restart=always -d -v "$PWD":/code -v ~/download:/download pikpakbot
 ```
 
 # 使用
@@ -73,6 +76,7 @@ docker run --name=pikpakbot --restart=always -d -v "$PWD":/code pikpakbot
 | `/start`        | 获取帮助信息                     | `/start`                                  | 无                             |
 | `/help`         | 获取帮助信息                     | `/help`                                   | 无                             |
 | `/pikpak`       | 一键下载磁力到本地               | `/pikpak magnet1 [magnet2] [...]`         | 可以一次下载多个磁力           |
+| `/youget`       | 一键下载网页视频到本地               | `/youget [-m] url [url] [...]`         | 可以一次下载多个url,-m: 下载m3u8视频，可以使用[https://www.parsevideo.com/](https://www.parsevideo.com/)解析出m3u8下载地址|
 | `/clean`        | 清空指定账号的网盘               | `/clean account1 [account2] [...]`        | `/clean all`清空所有账号网盘   |
 | `/account`      | 管理账号                         | `/account l/a/d [parameters]`             | 向机器人发送`/account`获取详情 |
 | ~~`/download`~~ | ~~下载并清空指定账号的网盘文件~~ | ~~`/download account1 [account2] [...]`~~ | ~~此仅为临时命令，以后将弃用~~ |
@@ -91,6 +95,8 @@ docker run --name=pikpakbot --restart=always -d -v "$PWD":/code pikpakbot
 
 # 更新日志
 <details>
+    ## V0.0.3
+    - 增加you-get下载网页视频
   
     ## V0.0.2
 
