@@ -1,4 +1,5 @@
 import os
+import uuid
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters
 import logging
 from telegram import Update
@@ -922,10 +923,12 @@ def download(update: Update, context: CallbackContext):
 # 使用you-get工具下载网页视频
 def youget_main(update: Update, context: CallbackContext, url):
     try:
-        context.bot.send_message(chat_id=update.effective_chat.id, text=f'you-get -o {YOUGET_DOWNLOAD_PATH} {url}')
+        cmd = f'you-get -o {YOUGET_DOWNLOAD_PATH} {url}'
+        context.bot.send_message(chat_id=update.effective_chat.id, text=cmd)
         os.chdir(os.path.abspath(YOUGET_DOWNLOAD_PATH)) # 切换到下载目录，-m m3u8下载时候需要
-        result = os.popen(f'you-get -o {YOUGET_DOWNLOAD_PATH} {url}').read()
-        context.bot.send_message(chat_id=update.effective_chat.id, text='you-get命令执行结束')
+        result = os.popen(cmd).read()
+        ls = os.popen('ls -lh').read()
+        context.bot.send_message(chat_id=update.effective_chat.id, text=f'you-get命令执行结束, 文件列表：\n {ls}')
     except Exception as e:
         context.bot.send_message(chat_id=update.effective_chat.id, text='you-get下载异常')
             
@@ -946,6 +949,8 @@ def youget(update: Update, context: CallbackContext):
                 thread_list.append(threading.Thread(target=youget_main, args=[update, context, you_get_arg + ' ' + url]))
                 thread_list[-1].start()
             else:
+                if url in ['-m']:
+                    you_get_arg += f' -O {uuid.uuid1()}' # 文件名 避免下载m3u8文件重名覆盖
                 you_get_arg += f' {url}'
 
         context.bot.send_message(chat_id=update.effective_chat.id, text=print_info.rstrip())
