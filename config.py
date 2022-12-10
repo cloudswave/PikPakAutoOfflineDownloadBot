@@ -15,4 +15,9 @@ ARIA2_DOWNLOAD_PATH = "/mnt/sda1/aria2/pikpak"
 TG_API_URL = 'https://api.telegram.org'
 
 #you-get下载目录
-YOUGET_DOWNLOAD_PATH = "/download"
+YOUGET_DOWNLOAD_PATH = "/root/download"
+
+#rclone默认需要备份上传的目录
+RCLONE_LOCAL_PATH = "/root/download"
+#rclone默认远程存储路径
+RCLONE_REMOTE_PATH = "alist:/teambition"

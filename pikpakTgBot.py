@@ -36,7 +36,7 @@ dispatcher = updater.dispatcher
 
 def start(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=update.effective_chat.id,
-                             text="【命令简介】\n/pikpak\t自动离线+aria2下载+释放网盘空间\n/youget\t自动爬取网页视频\n/account\t管理账号（发送/account查看使用帮助）"
+                             text="【命令简介】\n/pikpak\t自动离线+aria2下载+释放网盘空间\n/youget\t自动爬取网页视频\n/rclone\trclone备份文件\n/account\t管理账号（发送/account查看使用帮助）"
                                   "\n/clean\t清空账号网盘空间（请慎用！清空文件无法找回！！！）")
 
 
@@ -955,15 +955,41 @@ def youget(update: Update, context: CallbackContext):
 
         context.bot.send_message(chat_id=update.effective_chat.id, text=print_info.rstrip())
         logging.info(print_info.rstrip())
+def rclone(update: Update, context: CallbackContext):
+    def rclone_main(update: Update, context: CallbackContext):
+        argv = context.args  # 获取命令参数
+        context.bot.send_message(chat_id=update.effective_chat.id, text='rclone开始备份文件')
+        try:
+            local = RCLONE_LOCAL_PATH if len(argv) <= 1 else argv[1]
+            remote = RCLONE_REMOTE_PATH if len(argv) <= 2 else argv[2]
+            cmd = f'rclone {argv[0]} {local} {remote} -P --retries 100'
+            context.bot.send_message(chat_id=update.effective_chat.id, text=cmd)
+            # os.chdir(os.path.abspath(local)) # 切换目录
+            ls = os.popen(f'ls -lh {local}').read()
+            context.bot.send_message(chat_id=update.effective_chat.id, text=f'将要备份的文件列表：\n{ls}')
+            result = os.popen(cmd).read()
+            rclone_ls = os.popen(f'rclone lsf {remote}').read()
+            context.bot.send_message(chat_id=update.effective_chat.id, text=f'rclone命令执行结束, 远程文件列表：\n {rclone_ls}')
+        except Exception as e:
+            logging.error(e)
+            context.bot.send_message(chat_id=update.effective_chat.id, text='rclone命令执行异常')
+
+    argv = context.args  # 获取命令参数
+    if len(argv) == 0:  # 如果仅为/youget命令，没有附带参数则返回帮助信息
+        context.bot.send_message(chat_id=update.effective_chat.id, text='【用法】\n/rclone copy/move/sync [local] [remote]\n详细说明可查阅rclone帮助文档')
+    else:
+        thread_list.append(threading.Thread(target=rclone_main, args=[update, context]))
+        thread_list[-1].start()
 
 start_handler = CommandHandler(['start', 'help'], start)
 pikpak_handler = CommandHandler('pikpak', pikpak)
 clean_handler = CommandHandler(['clean', 'clear'], clean)
 account_handler = CommandHandler('account', account_manage)
 youget_handler = CommandHandler('youget', youget)
+rclone_handler = CommandHandler('rclone', rclone)
 # download_handler = CommandHandler('download', download)  # download命令在pikpak命令健壮后将弃用
 
-
+dispatcher.add_handler(rclone_handler)
 dispatcher.add_handler(youget_handler)
 dispatcher.add_handler(account_handler)
 dispatcher.add_handler(start_handler)
